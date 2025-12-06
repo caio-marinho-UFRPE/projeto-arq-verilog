@@ -16,8 +16,8 @@ module PC (
         pcOUT = 32'h00000000; 
     end
 
-    // Sempre que houver uma atualização no clock ou no reset roda o bloco abaixo
-    always @(posedge clk or posedge reset) begin
+    //  Dispara na borda de subida do clock
+    always @(posedge clk) begin
         // se foi o reset, zera o PC
         if (reset) begin
             pcOUT <= 32'h00000000;
@@ -26,7 +26,7 @@ module PC (
             pcOUT <= nextPC;
         end
     end
-    
+
 endmodule
 
 
