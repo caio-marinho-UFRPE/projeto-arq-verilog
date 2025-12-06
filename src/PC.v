@@ -3,7 +3,7 @@
 // Implementação do registrador PC (Program Counter)
 
 module PC (
-    input clk,                  // Clock
+    input clock,                // Clock
     input reset,                // Sinal de reset
     input [31:0] nextPC,        // Próximo valor do PC]
     output reg [31:0] pcOUT     // Output do PC
@@ -13,7 +13,7 @@ module PC (
 
     // O PC inicializa zerado
     initial begin
-        pcOUT = 32'h00000000; 
+        pcOUT = 32'h00000000;
     end
 
     //  Dispara na borda de subida do clock
