@@ -26,7 +26,7 @@ module d_mem #(
 			// prteção de limite
 			if ((address >> 2) < MEM_DEPTH)
 				// Escrita em si
-				ram[address[32:2]] <= writeData;
+				ram[address[31:2]] <= writeData;
 		end
 	end
 endmodule
