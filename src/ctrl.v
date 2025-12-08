@@ -3,7 +3,7 @@
 // Implementação da unidade de controle
 
 module control (
-	input wire [5:0] opcode, // bits 31-26 da instrução 
+	input wire [5:0] opcode, // bits 31-26 da instrução
 	input wire [5:0] funct, // bits 5-0 da instrução
 	
 	// define em qual registrador será escrito o resultado
@@ -17,7 +17,7 @@ module control (
 	output reg branch,
 	output reg bne,
 	
-	// Acesso a RAM					
+	// Acesso a RAM
 	output reg memRead,
 	output reg memWrite,
 	
