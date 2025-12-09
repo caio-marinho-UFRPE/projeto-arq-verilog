@@ -57,7 +57,8 @@ module ula (
             // Este deslocamente preserva o sinal, para tal é preciso que o segundo
             // operador seja tratado como signed para usar o operador >>>
             SRA : result = $signed(In2) >>> In1[4:0];  // (srav)
-
+            
+            // Pega os 16 bits inferiores de In2 (o imediato) e joga para o topo.
             LUI : result = {In2[15:0], 16'b0};
             
             default : result = 32'd0; // Segurança, explicada com mais detalhes

@@ -21,15 +21,16 @@ module ula_ctrl (
     localparam  OP_SRA      = 4'b1010;
     localparam  OP_LUI      = 4'b1011;
 
-    localparam  ALUOP_LW_SW = 4'b0000;
-    localparam  ALUOP_BRANCH= 4'b0001;
-    localparam  ALUOP_RTYPE = 4'b0010;
-    localparam  ALUOP_AND   = 4'b0011;
-    localparam  ALUOP_OR    = 4'b0100;
-    localparam  ALUOP_XOR   = 4'b0101;
-    localparam  ALUOP_LUI   = 4'b0110;
-    localparam  ALUOP_SLT   = 4'b0111;
-    localparam  ALUOP_SLTU  = 4'b1000;
+    // Códigos de operação da unidade central, de acordo com a mesma
+	localparam ALUOP_R_TYPE = 3'b000;
+	localparam ALUOP_ADD  	= 3'b000;
+	localparam ALUOP_SUB  	= 3'b001;
+	localparam ALUOP_AND  	= 3'b010;
+	localparam ALUOP_OR   	= 3'b011;
+	localparam ALUOP_XOR  	= 3'b101;
+	localparam ALUOP_SLT  	= 3'b110;
+	localparam ALUOP_SLTU 	= 3'b111;
+
 
     localparam  FUNCT_ADD   = 6'h20;
     localparam  FUNCT_SUB   = 6'h22;

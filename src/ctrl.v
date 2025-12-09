@@ -35,29 +35,31 @@ module control (
 	output reg regWrite
 );
 
-	// Bloco de constantes para legibilidade do switch statement abaixo
+	// Definição dos opcodes, escoolha dos valores feita de acordo com a ordem
+	// em que eles estão dispostos no documento
+    localparam OP_R_TYPE = 6'b000000;
+	localparam OP_ADDI   = 6'b000001;
+	localparam OP_ANDI   = 6'b000010;
+    localparam OP_ORI    = 6'b000011;
+    localparam OP_XORI   = 6'b000100;
+    localparam OP_BEQ    = 6'b000101;
+    localparam OP_BNE    = 6'b000110;
+    localparam OP_SLTI   = 6'b000111;
+    localparam OP_SLTIU  = 6'b001000;
+    localparam OP_LUI    = 6'b001001;
+    localparam OP_LW     = 6'b001010;
+    localparam OP_SW     = 6'b001011;
+	localparam OP_J      = 6'b001100;
+    localparam OP_JAL    = 6'b001101;
 
-	// Instruções de tipo R
-	localparam OP_R_TYPE = 6'b000000;
-	
-	// Instruções de tipo J
-	localparam OP_J = 6'b000010;
-	localparam OP_JAL = 6'b000011;
-	
-	// Instruções de tipo I (aceso a memória e branches)
-	localparam OP_LW = 6'b100011;
-	localparam OP_SW = 6'b101011;
-	localparam OP_BEQ = 6'b000100;
-	localparam OP_BNE = 6'b000101;
-	
-	// Instruções de tipo I (operações matemáticas e lógica)
-	localparam OP_ADDI = 6'b001000;
-	localparam OP_ANDI = 6'b001100;
-	localparam OP_ORI = 6'b001101;
-	localparam OP_XORI = 6'b001110;
-	localparam OP_LUI = 6'b001111;
-	localparam OP_SLTI = 6'b001010;
-	localparam OP_SLTIU = 6'b001011;
+	localparam ALUOP_R_TYPE = 3'b000;
+	localparam ALUOP_ADD  	= 3'b001; // Serve para lw, sw, addi
+	localparam ALUOP_SUB  	= 3'b010; // Serve para beq, bni
+	localparam ALUOP_AND  	= 3'b011; // Serve para andi
+	localparam ALUOP_OR   	= 3'b100; // Serve para ori
+	localparam ALUOP_XOR  	= 3'b101; // Serve para xori
+	localparam ALUOP_SLT  	= 3'b110; // Serve para slti
+	localparam ALUOP_SLTU 	= 3'b111; // Serve para sltiu
 	
 	// definição do funct espécifico
 	localparam FUNCT_JR = 6'b001000;
@@ -69,7 +71,7 @@ module control (
 		jump = 1'b0;
 		jumpReg = 1'b0;
 		branch = 1'b0;
-		bne = 1'b0; 
+		bne = 1'b0;
 		memRead = 1'b0;
 		memToReg = 2'b00;
 		memWrite = 1'b0;
@@ -90,28 +92,28 @@ module control (
 				end
 				// Instruções "normais" de tipo R
 				else begin
-					regDst = 2'b01;
+					regDst 	 = 2'b01;
 					regWrite = 1'b1;
-					ALUOp = 4'b0010;
+					ALUOp    = ALUOP_R_TYPE;
 				end
 			end
 
 			// Load Word
 			OP_LW: begin
-				ALUSrc = 1'b1;
-				memRead = 1'b1;
+				ALUSrc 	 = 1'b1;
+				memRead  = 1'b1;
 				memToReg = 2'b01;
 				regWrite =  1'b1;
-				regDst = 2'b00;
-				ALUOp = 4'b0000;
+				regDst 	 = 2'b00;
+				ALUOp    = ALUOP_ADD;
 				
 			end
 
 			// Store Word
 			OP_SW: begin
-				ALUSrc = 1'b1;
+				ALUSrc 	 = 1'b1;
 				memWrite = 1'b1;
-				ALUOp = 4'b0000;
+				ALUOp    = ALUOP_ADD;
 		
 			end
 
@@ -119,15 +121,15 @@ module control (
 			OP_BEQ: begin
 				ALUSrc = 1'b0;
 				branch = 1'b1;
-				ALUOp = 4'b0001;
+				ALUOp  = ALUOP_SUB;
 				
 			end
 
 			// Branch if not equal
 			OP_BNE: begin
 				ALUSrc = 1'b0;
-				bne = 1'b1;
-				ALUOp = 4'b0001;
+				bne    = 1'b1;
+				ALUOp  = ALUOP_SUB;
 		
 			end
 			
@@ -150,34 +152,34 @@ module control (
 			OP_ADDI: begin
 				ALUSrc = 1'b1;
 				regWrite = 1'b1;
-				ALUOp = 4'b0000;
+				ALUOp    = ALUOP_ADD;
 		
 			end
 	
 			// Bloco dos operadores lógicos imediatos
 			OP_ANDI: begin
-				ALUSrc = 1'b1;
+				ALUSrc 	 = 1'b1;
 				regWrite = 1'b1;
-				ALUOp = 4'b0011;
-				zeroExt = 1'b1;
+				ALUOp    = ALUOP_AND;
+				zeroExt  = 1'b1;
 				
 			end
 
 		
 			OP_ORI: begin
-				ALUSrc = 1'b1;
+				ALUSrc 	 = 1'b1;
 				regWrite = 1'b1;
-				ALUOp = 4'b0100;
-				zeroExt = 1'b1;
+				ALUOp    = ALUOP_OR;
+				zeroExt  = 1'b1;
 		
 			end
 
 		
 			OP_XORI: begin
-				ALUSrc = 1'b1;
+				ALUSrc 	 = 1'b1;
 				regWrite = 1'b1;
-				ALUOp = 4'b0101;
-				zeroExt = 1'b1;
+				ALUOp    = ALUOP_XOR;
+				zeroExt  = 1'b1;
 		
 			end
 
@@ -190,9 +192,9 @@ module control (
 
 		
 			OP_SLTI: begin
-				ALUSrc = 1'b1;
+				ALUSrc   = 1'b1;
 				regWrite = 1'b1;
-				ALUOp = 4'b0111;
+				ALUOp    = ALUOP_SLT;
 		
 			end
 
@@ -201,14 +203,14 @@ module control (
 				ALUSrc = 1'b1;
 				regWrite = 1'b1;
 				ALUOp = 4'b1000;
-				zeroExt = 1'b0;
+				ALUOp    = ALUOP_SLTU;
 		
 			end
 			
 			// Mantem os valores padrão
 			default: begin
 				regWrite = 1'b0;
-		
+
 			end
 			
 		endcase
