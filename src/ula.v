@@ -5,6 +5,7 @@
 module ula (
     input [31:0] In1,         // Operando 1
     input [31:0] In2,         // Operando 2
+    input wire [4:0]  shamt,  // Quantidade de deslocamento para operações de shift
     input [3:0] OP,           // Operação a ser realizada
     output reg [31:0] result, // Resultado da operação
     output wire Zero_flag     // Flag para o resultado 0
@@ -36,7 +37,7 @@ module ula (
     always @(*) begin
         case (OP)
             // Aqui o resultado é definido com base no código de operação que foi
-            // passado, com as devidas reciclgagens nas funções que compartilham
+            // passado, com as devidas reciclagagens nas funções que compartilham
             //o mesmo operador
             ADD : result = In1 + In2;    // Soma (addi, lw, sw)
             SUB : result = In1 - In2;    // Subtração (beq, bne)
@@ -52,11 +53,11 @@ module ula (
             // Deslocamentos
             // Tanto em SLL, quanto SRL a gente considerou os 5 bits meenos significativos
             // do operando 1 como a distência a ser deslocada
-            SLL : result = In2 << In1[4:0];             // (sllv)
-            SRL : result = In2 >> In1[4:0];             // (srlv)
+            SLL : result = In2 << (In1[4:0] + shamt);             // (sll, sllv)
+            SRL : result = In2 >> (In1[4:0] + shamt);             // (srl, srlv)
             // Este deslocamente preserva o sinal, para tal é preciso que o segundo
             // operador seja tratado como signed para usar o operador >>>
-            SRA : result = $signed(In2) >>> In1[4:0];  // (srav)
+            SRA : result = $signed(In2) >>> (In1[4:0] + shamt);  // (sra, srav)
             
             // Pega os 16 bits inferiores de In2 (o imediato) e joga para o topo.
             LUI : result = {In2[15:0], 16'b0};

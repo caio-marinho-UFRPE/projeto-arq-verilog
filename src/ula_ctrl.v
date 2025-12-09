@@ -3,61 +3,67 @@
 // Implementação da unidade de controle da ULA
 
 module ula_ctrl (
-    // Pessoalmente, eu preferiria deixar tudo como "ULA" e "ULAControl" por ser
-    // a sigla em português, mas como no documento cita explicitamente "ALU" e
-    // "ALUControl" eu vou deixar assim
-    input wire [3:0] ALUOp,     // opcode vindo da unidade de controle central
-    input wire [5:0] funct,     // function, dos 6 bits menos significativos da instrução
-    output reg [3:0] ALUControl // Sinal de controle enviado para ULA
+    input wire [3:0] ALUOp,   // Código reduzido vindo da Control Unit
+    input wire [5:0] funct,   // Campo funct (somente para instruções R)
+    output reg [3:0] ALUControl // Operação final enviada para a ULA
 );
 
-    // Códigos de operação da ULA, de acordo as definições de lá
-    localparam  OP_ADD      = 4'b0000;
-    localparam  OP_SUB      = 4'b0001;
-    localparam  OP_AND      = 4'b0010;
-    localparam  OP_OR       = 4'b0011;
-    localparam  OP_XOR      = 4'b0100;
-    localparam  OP_NOR      = 4'b0101;
-    localparam  OP_SLT      = 4'b0110;
-    localparam  OP_SLTU     = 4'b0111;
-    localparam  OP_SLL      = 4'b1000;
-    localparam  OP_SRL      = 4'b1001;
-    localparam  OP_SRA      = 4'b1010;
-    localparam  OP_LUI      = 4'b1011;
+    // Códigos de operação que a ULA entende diretamente
+    // (Esses valores são escolhidos por nós — não são padrão MIPS)
+    localparam OP_ADD  = 4'b0000;
+    localparam OP_SUB  = 4'b0001;
+    localparam OP_AND  = 4'b0010;
+    localparam OP_OR   = 4'b0011;
+    localparam OP_XOR  = 4'b0100;
+    localparam OP_NOR  = 4'b0101;
+    localparam OP_SLT  = 4'b0110;
+    localparam OP_SLTU = 4'b0111;
+    localparam OP_SLL  = 4'b1000;
+    localparam OP_SRL  = 4'b1001;
+    localparam OP_SRA  = 4'b1010;
+    localparam OP_LUI  = 4'b1011;
 
-    // Códigos de operação da unidade central, de acordo com a mesma
-	localparam ALUOP_R_TYPE = 3'b000;
-	localparam ALUOP_ADD  	= 3'b000;
-	localparam ALUOP_SUB  	= 3'b001;
-	localparam ALUOP_AND  	= 3'b010;
-	localparam ALUOP_OR   	= 3'b011;
-	localparam ALUOP_XOR  	= 3'b101;
-	localparam ALUOP_SLT  	= 3'b110;
-	localparam ALUOP_SLTU 	= 3'b111;
+    // Códigos ALUOp vindos da Control Unit
+    // Cada um indica diretamente uma operação, exceto o RTYPE, que
+    // obriga a olhar o funct.
+    localparam ALUOP_RTYPE = 4'b0000; // Usa funct para decidir
+    localparam ALUOP_ADD   = 4'b1000; // addi, lw, sw
+    localparam ALUOP_SUB   = 4'b1001; // beq, bne
+    localparam ALUOP_AND   = 4'b1010;
+    localparam ALUOP_OR    = 4'b1011;
+    localparam ALUOP_XOR   = 4'b1100;
+    localparam ALUOP_LUI   = 4'b1111;
+    localparam ALUOP_SLT   = 4'b1101;
+    localparam ALUOP_SLTU  = 4'b1110;
 
-    // Códigos do funct, valores decididos com base nas ordem em que as instruções
-    // estão dispostas no documento
-    localparam  FUNCT_ADD   = 6'h01;
-    localparam  FUNCT_SUB   = 6'h02;
-    localparam  FUNCT_AND   = 6'h03;
-    localparam  FUNCT_OR    = 6'h04;
-    localparam  FUNCT_XOR   = 6'h05;
-    localparam  FUNCT_NOR   = 6'h06;
-    localparam  FUNCT_SLT   = 6'h07;
-    localparam  FUNCT_SLTU  = 6'h08;
-    // Deslocamentos, tipo R
-    localparam  FUNCT_SLL   = 6'h09;
-    localparam  FUNCT_SRL   = 6'h0A;
-    localparam  FUNCT_SRA   = 6'h0B;
-    localparam  FUNCT_SLLV  = 6'h0C;
-    localparam  FUNCT_SRLV  = 6'h0D;
-    localparam  FUNCT_SRAV  = 6'h0E;
+    // Códigos funct padrão do MIPS (aparecem apenas no tipo R)
+    localparam FUNCT_ADD  = 6'h20;
+    localparam FUNCT_SUB  = 6'h22;
+    localparam FUNCT_AND  = 6'h24;
+    localparam FUNCT_OR   = 6'h25;
+    localparam FUNCT_XOR  = 6'h26;
+    localparam FUNCT_NOR  = 6'h27;
+    localparam FUNCT_SLT  = 6'h2A;
+    localparam FUNCT_SLTU = 6'h2B;
 
-    localparam  FUNCT_JR    = 6'h0F;
+    // Shifts (com e sem variável)
+    localparam FUNCT_SLL  = 6'h00;
+    localparam FUNCT_SRL  = 6'h02;
+    localparam FUNCT_SRA  = 6'h03;
+    localparam FUNCT_SLLV = 6'h04;
+    localparam FUNCT_SRLV = 6'h06;
+    localparam FUNCT_SRAV = 6'h07;
+
+    // jr — não gera operação da ULA, mas aparece no funct
+    localparam FUNCT_JR   = 6'h08;
 
     always @(*) begin
+        // Valor padrão (fallback)
+        // Definimos ADD como padrão porque é seguro e não causa danos
+        ALUControl = OP_ADD;
+
         case (ALUOp)
-            // Instrução tipo R, a operação depende do valor em funct
+            // Tipo R — precisa olhar o funct
             ALUOP_RTYPE: begin
                 case (funct)
                     FUNCT_ADD : ALUControl = OP_ADD;
@@ -68,19 +74,23 @@ module ula_ctrl (
                     FUNCT_NOR : ALUControl = OP_NOR;
                     FUNCT_SLT : ALUControl = OP_SLT;
                     FUNCT_SLTU: ALUControl = OP_SLTU;
+
+                    // Shifts diretos
                     FUNCT_SLL : ALUControl = OP_SLL;
                     FUNCT_SRL : ALUControl = OP_SRL;
                     FUNCT_SRA : ALUControl = OP_SRA;
-                    // Deslocamentos
+
+                    // Versões com shamt vindo do registrador
                     FUNCT_SLLV: ALUControl = OP_SLL;
                     FUNCT_SRLV: ALUControl = OP_SRL;
                     FUNCT_SRAV: ALUControl = OP_SRA;
-                    // Padrão de segurança, "na dúvida some"
-                    default  : ALUControl = OP_ADD;
+
+                    // Qualquer funct não reconhecido volta ao padrão
+                    default   : ALUControl = OP_ADD;
                 endcase
             end
-            
-            // Instruções tipo I, a operação é definida aqui mesmo
+
+            // Instruções tipo I ou específicas (já decididas pela Control Unit)
             ALUOP_ADD : ALUControl = OP_ADD;
             ALUOP_SUB : ALUControl = OP_SUB;
             ALUOP_AND : ALUControl = OP_AND;
@@ -90,9 +100,8 @@ module ula_ctrl (
             ALUOP_SLTU: ALUControl = OP_SLTU;
             ALUOP_LUI : ALUControl = OP_LUI;
 
-             // Padrão de segurança, "na dúvida some"
+            // Segurança: assume ADD se algo vier errado
             default   : ALUControl = OP_ADD;
         endcase
     end
-
 endmodule
