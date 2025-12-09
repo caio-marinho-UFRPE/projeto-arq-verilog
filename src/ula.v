@@ -31,6 +31,7 @@ module ula (
     localparam  SLL  = 4'b1000;
     localparam  SRL  = 4'b1001;
     localparam  SRA  = 4'b1010;
+    localparam  LUI  = 4'b1011;
 
     always @(*) begin
         case (OP)
@@ -56,6 +57,8 @@ module ula (
             // Este deslocamente preserva o sinal, para tal é preciso que o segundo
             // operador seja tratado como signed para usar o operador >>>
             SRA : result = $signed(In2) >>> In1[4:0];  // (srav)
+
+            LUI : result = {In2[15:0], 16'b0};
             
             default : result = 32'd0; // Segurança, explicada com mais detalhes
             // no ula_ctrl
