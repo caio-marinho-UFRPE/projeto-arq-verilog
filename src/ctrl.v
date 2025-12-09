@@ -36,28 +36,29 @@ module control (
 );
 
 	// Bloco de constantes para legibilidade do switch statement abaixo
-
+	// Escolha dos valores foi definida de acordo com a ordem em que os mesmos
+	// estão dispostos no documento
 	// Instruções de tipo R
 	localparam OP_R_TYPE = 6'b000000;
 	
 	// Instruções de tipo J
-	localparam OP_J = 6'b000010;
-	localparam OP_JAL = 6'b000011;
+	localparam OP_J 	 = 6'b001100;
+	localparam OP_JAL 	 = 6'b001101;
 	
 	// Instruções de tipo I (aceso a memória e branches)
-	localparam OP_LW = 6'b100011;
-	localparam OP_SW = 6'b101011;
-	localparam OP_BEQ = 6'b000100;
-	localparam OP_BNE = 6'b000101;
+	localparam OP_LW 	 = 6'b001010;
+	localparam OP_SW 	 = 6'b001011;
+	localparam OP_BEQ 	 = 6'b000101;
+	localparam OP_BNE 	 = 6'b000110;
 	
 	// Instruções de tipo I (operações matemáticas e lógica)
-	localparam OP_ADDI = 6'b001000;
-	localparam OP_ANDI = 6'b001100;
-	localparam OP_ORI = 6'b001101;
-	localparam OP_XORI = 6'b001110;
-	localparam OP_LUI = 6'b001111;
-	localparam OP_SLTI = 6'b001010;
-	localparam OP_SLTIU = 6'b001011;
+	localparam OP_ADDI 	 = 6'b000001;
+	localparam OP_ANDI 	 = 6'b000010;
+	localparam OP_ORI 	 = 6'b000011;
+	localparam OP_XORI 	 = 6'b000100;
+	localparam OP_LUI 	 = 6'b001001;
+	localparam OP_SLTI	 = 6'b000111;
+	localparam OP_SLTIU  = 6'b001000;
 	
 	// definição do funct espécifico
 	localparam FUNCT_JR = 6'b001000;
@@ -69,7 +70,7 @@ module control (
 		jump = 1'b0;
 		jumpReg = 1'b0;
 		branch = 1'b0;
-		bne = 1'b0; 
+		bne = 1'b0;
 		memRead = 1'b0;
 		memToReg = 2'b00;
 		memWrite = 1'b0;
