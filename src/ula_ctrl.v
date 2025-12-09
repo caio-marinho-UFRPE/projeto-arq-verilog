@@ -3,11 +3,15 @@
 // Implementação da unidade de controle da ULA
 
 module ula_ctrl (
-    input wire [3:0] ALUOp,
-    input wire [5:0] funct,
-    output reg [3:0] ALUControl
+    // Pessoalmente, eu preferiria deixar tudo como "ULA" e "ULAControl" por ser
+    // a sigla em português, mas como no documento cita explicitamente "ALU" e
+    // "ALUControl" eu vou deixar assim
+    input wire [3:0] ALUOp,     // opcode vindo da unidade de controle central
+    input wire [5:0] funct,     // function, dos 6 bits menos significativos da instrução
+    output reg [3:0] ALUControl // Sinal de controle enviado para ULA
 );
 
+    // Códigos de operação da ULA, de acordo as definições de lá
     localparam  OP_ADD      = 4'b0000;
     localparam  OP_SUB      = 4'b0001;
     localparam  OP_AND      = 4'b0010;
@@ -31,27 +35,29 @@ module ula_ctrl (
 	localparam ALUOP_SLT  	= 3'b110;
 	localparam ALUOP_SLTU 	= 3'b111;
 
+    // Códigos do funct, valores decididos com base nas ordem em que as instruções
+    // estão dispostas no documento
+    localparam  FUNCT_ADD   = 6'h01;
+    localparam  FUNCT_SUB   = 6'h02;
+    localparam  FUNCT_AND   = 6'h03;
+    localparam  FUNCT_OR    = 6'h04;
+    localparam  FUNCT_XOR   = 6'h05;
+    localparam  FUNCT_NOR   = 6'h06;
+    localparam  FUNCT_SLT   = 6'h07;
+    localparam  FUNCT_SLTU  = 6'h08;
+    // Deslocamentos, tipo R
+    localparam  FUNCT_SLL   = 6'h09;
+    localparam  FUNCT_SRL   = 6'h0A;
+    localparam  FUNCT_SRA   = 6'h0B;
+    localparam  FUNCT_SLLV  = 6'h0C;
+    localparam  FUNCT_SRLV  = 6'h0D;
+    localparam  FUNCT_SRAV  = 6'h0E;
 
-    localparam  FUNCT_ADD   = 6'h20;
-    localparam  FUNCT_SUB   = 6'h22;
-    localparam  FUNCT_AND   = 6'h24;
-    localparam  FUNCT_OR    = 6'h25;
-    localparam  FUNCT_XOR   = 6'h26;
-    localparam  FUNCT_NOR   = 6'h27;
-    localparam  FUNCT_SLT   = 6'h2A;
-    localparam  FUNCT_SLTU  = 6'h2B;
-
-    localparam  FUNCT_SLL   = 6'h00;
-    localparam  FUNCT_SRL   = 6'h02;
-    localparam  FUNCT_SRA   = 6'h03;
-    localparam  FUNCT_SLLV  = 6'h04;
-    localparam  FUNCT_SRLV  = 6'h06;
-    localparam  FUNCT_SRAV  = 6'h07;
-
-    localparam FUNCT_JR   = 6'h08;
+    localparam  FUNCT_JR    = 6'h0F;
 
     always @(*) begin
         case (ALUOp)
+            // Instrução tipo R, a operação depende do valor em funct
             ALUOP_RTYPE: begin
                 case (funct)
                     FUNCT_ADD : ALUControl = OP_ADD;
@@ -65,24 +71,26 @@ module ula_ctrl (
                     FUNCT_SLL : ALUControl = OP_SLL;
                     FUNCT_SRL : ALUControl = OP_SRL;
                     FUNCT_SRA : ALUControl = OP_SRA;
-
+                    // Deslocamentos
                     FUNCT_SLLV: ALUControl = OP_SLL;
                     FUNCT_SRLV: ALUControl = OP_SRL;
                     FUNCT_SRAV: ALUControl = OP_SRA;
-
+                    // Padrão de segurança, "na dúvida some"
                     default  : ALUControl = OP_ADD;
                 endcase
             end
+            
+            // Instruções tipo I, a operação é definida aqui mesmo
+            ALUOP_ADD : ALUControl = OP_ADD;
+            ALUOP_SUB : ALUControl = OP_SUB;
+            ALUOP_AND : ALUControl = OP_AND;
+            ALUOP_OR  : ALUControl = OP_OR;
+            ALUOP_XOR : ALUControl = OP_XOR;
+            ALUOP_SLT : ALUControl = OP_SLT;
+            ALUOP_SLTU: ALUControl = OP_SLTU;
+            ALUOP_LUI : ALUControl = OP_LUI;
 
-            ALUOP_LW_SW : ALUControl = OP_ADD;
-            ALUOP_BRANCH: ALUControl = OP_SUB;
-            ALUOP_AND   : ALUControl = OP_AND;
-            ALUOP_OR    : ALUControl = OP_OR;
-            ALUOP_XOR   : ALUControl = OP_XOR;
-            ALUOP_SLT   : ALUControl = OP_SLT;
-            ALUOP_SLTU  : ALUControl = OP_SLTU;
-            ALUOP_LUI   : ALUControl = OP_LUI;
-
+             // Padrão de segurança, "na dúvida some"
             default   : ALUControl = OP_ADD;
         endcase
     end
