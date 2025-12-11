@@ -43,7 +43,7 @@ module tb_mips_core;
         reset = 0;  // Solta o reset para o processador começar a rodar
 
         // Roda a simulação por tempo suficiente para executar todas as instruções da lista
-        #200;
+        #1000;
 
         // Termina a execução e fecha o simulador automaticamente
         $display("--- Fim da Simulacao ---");
